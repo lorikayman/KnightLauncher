@@ -118,3 +118,9 @@ kill $(pgrep -x icewm-session) \
 # selectively kill Xorg instance
 ps aux | grep Xorg
 ```
+
+After this connect with VNC client to port `:5901`. Remmina has more stable display scaling, so we will use it.
+
+```sh
+sudo apt install remmina
+```

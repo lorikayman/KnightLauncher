@@ -56,3 +56,18 @@ The following open source libraries were used to develop Knight Launcher:
 - [jIconFont](https://github.com/jIconFont)
 - [samskivert](https://github.com/samskivert/samskivert)
 - [JHLabs Filters](http://www.jhlabs.com/)
+
+## Build
+
+### Debian / apt
+
+Install dependencies:
+
+```sh
+sudo apt install openjdk-8-jdk
+# install modern java (>= 18) for Fernflower and linter
+sudo apt install openjdk-21-jdk
+sudo apt install maven
+```
+
+For build, see [`taskfile.yml::deploy`](./taskfile.yml) steps and dependencies.

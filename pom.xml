@@ -1,6 +1,8 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project
+  xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd"
+>
   <modelVersion>4.0.0</modelVersion>
   <groupId>KnightLauncher</groupId>
   <artifactId>KnightLauncher</artifactId>
@@ -102,7 +104,135 @@
 
   <build>
     <sourceDirectory>src/main/java</sourceDirectory>
+
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-install-plugin</artifactId>
+        <version>3.1.2</version>
+        <executions>
+          <execution>
+              <id>install-commons-io</id>
+              <phase>initialize</phase>
+              <goals>
+                  <goal>install-file</goal>
+              </goals>
+              <configuration>
+                  <file>${project.basedir}/lib/commons-io-2.6.jar</file>
+                  <groupId>org.apache</groupId>
+                  <artifactId>commons-io</artifactId>
+                  <version>2.6</version>
+                  <packaging>jar</packaging>
+              </configuration>
+          </execution>
+            <execution>
+                <id>install-discord-rpc</id>
+                <phase>initialize</phase>
+                <goals>
+                    <goal>install-file</goal>
+                </goals>
+                <configuration>
+                    <file>${project.basedir}/lib/discord-rpc.jar</file>
+                    <groupId>net.arikia.dev</groupId>
+                    <artifactId>discord-rpc</artifactId>
+                    <version>1.6.2</version>
+                    <packaging>jar</packaging>
+                </configuration>
+            </execution>
+            <execution>
+                <id>install-filters</id>
+                <phase>initialize</phase>
+                <goals>
+                    <goal>install-file</goal>
+                </goals>
+                <configuration>
+                    <file>${project.basedir}/lib/Filters.jar</file>
+                    <groupId>com.jhlabs</groupId>
+                    <artifactId>filters</artifactId>
+                    <version>1.0</version>
+                    <packaging>jar</packaging>
+                </configuration>
+            </execution>
+            <execution>
+                <id>install-image4j</id>
+                <phase>initialize</phase>
+                <goals>
+                    <goal>install-file</goal>
+                </goals>
+                <configuration>
+                    <file>${project.basedir}/lib/image4j-0.7.2.jar</file>
+                    <groupId>net.sf</groupId>
+                    <artifactId>image4j</artifactId>
+                    <version>0.7.2</version>
+                    <packaging>jar</packaging>
+                </configuration>
+            </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>3.6.1</version>
+        <executions>
+          <execution>
+            <id>unpack-local-jars</id>
+            <phase>prepare-package</phase>
+            <goals>
+                <goal>unpack</goal>
+            </goals>
+            <configuration>
+                <artifactItems>
+                  <artifactItem>
+                    <groupId>commons-io</groupId>
+                    <artifactId>commons-io</artifactId>
+                    <version>2.6</version>
+                    <type>jar</type>
+
+                    <overWrite>true</overWrite>
+                    <outputDirectory>
+                      ${project.build.directory}/classes
+                    </outputDirectory>
+                  </artifactItem>
+
+                  <artifactItem>
+                    <groupId>net.arikia.dev</groupId>
+                    <artifactId>discord-rpc</artifactId>
+                    <version>1.6.2</version>
+                    <type>jar</type>
+                    <overWrite>true</overWrite>
+
+                    <outputDirectory>
+                      ${project.build.directory}/classes
+                    </outputDirectory>
+                  </artifactItem>
+
+                  <artifactItem>
+                    <groupId>com.jhlabs</groupId>
+                    <artifactId>filters</artifactId>
+                    <version>1.0</version>
+                    <type>jar</type>
+                    <overWrite>true</overWrite>
+                    <outputDirectory>
+                      ${project.build.directory}/classes
+                    </outputDirectory>
+                  </artifactItem>
+
+                  <artifactItem>
+                    <groupId>net.sf</groupId>
+                    <artifactId>image4j</artifactId>
+                    <version>0.7.2</version>
+                    <type>jar</type>
+                    <overWrite>true</overWrite>
+                    <outputDirectory>
+                      ${project.build.directory}/classes
+                    </outputDirectory>
+                  </artifactItem>
+
+                </artifactItems>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.13.0</version>
@@ -111,7 +241,53 @@
           <target>1.8</target>
         </configuration>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.2.0</version>
+        <configuration>
+          <archive>
+            <manifestFile>src/main/resources/META-INF/MANIFEST.MF</manifestFile>
+          </archive>
+        </configuration>
+      </plugin>
+
+      <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <version>3.6.0</version>
+            <configuration>
+              <descriptors>
+                <descriptor>src/main/assembly/package_jars.xml</descriptor>
+              </descriptors>
+              <archive>
+                <manifest>
+                  <mainClass>com.luuqui.launcher.LauncherApp</mainClass>
+                </manifest>
+              </archive>
+            </configuration>
+            <executions>
+              <execution>
+                <phase>package</phase>
+                <goals>
+                    <goal>single</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+
     </plugins>
+    <resources>
+
+
+      <resource>
+        <directory>src/main/resources</directory>
+        <includes>
+          <include>**/*</include>
+        </includes>
+      </resource>
+
+    </resources>
   </build>
 
 </project>

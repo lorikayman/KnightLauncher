@@ -21,7 +21,16 @@ public class EditorsEventHandler {
   public static boolean isBooting = false;
   public static boolean spiralviewExtracted = false;
 
+  /**
+   * Starts editor with predefined arguments
+   *
+   * @param editor
+   * @param arg
+   * @param thirdparty
+   */
   private static void startEditor(String editor, String arg, boolean thirdparty) {
+    log.info("Running SceneEditor [s1]: in thirdparty mode: " + thirdparty);
+
     if(!spiralviewExtracted) {
       ModuleLoader.loadSpiralview();
       spiralviewExtracted = true;
@@ -72,6 +81,8 @@ public class EditorsEventHandler {
       editorCmdLine.add(editor);
       editorCmdLine.add(arg);
 
+      log.info("\n\nRunning SceneEditor with args:" + String.join("\n", editorCmdLine));
+
       ProcessUtil.runFromDirectory(editorCmdLine.toArray(new String[editorCmdLine.size()]), rootDir, true);
     }
   }
@@ -85,6 +96,9 @@ public class EditorsEventHandler {
     }
   }
 
+  /**
+   * Listener for calling SceneViewer/SceneEditor from GUI
+   */
   public static void startSceneEditor(ActionEvent actionEvent) {
     EditorsGUI.editorLaunchFakeProgressBar.setMaximum(155);
     if(LauncherApp.selectedServer.isOfficial()) {

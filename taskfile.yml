@@ -1,0 +1,72 @@
+# https://taskfile.dev
+
+version: "3"
+
+vars:
+  JAVA_HOME:
+    sh: echo "/usr/lib/jvm/java-8-openjdk-amd64"
+
+env:
+  JAVA_HOME: "{{.JAVA_HOME}}"
+
+tasks:
+  default:
+    cmds:
+      - task --list-all
+  log:
+    summary: Display full log
+    aliases: [l]
+    cmds:
+      - clear
+      - cat ./../knightlauncher.log
+  build:
+    summary: Build target/*.jar
+    aliases: [b]
+    cmds:
+      - |
+        JAVA_HOME=$JAVA_HOME \
+        mvn clean package
+  local:repo:
+    summary: Check local Maven repo
+    aliases: [c]
+    cmds:
+      - mvn dependency:tree
+  run:
+    summary: Launch from parent directory
+    aliases: [r]
+    cmds:
+      # we change default for all shells java
+      # as SceneEditor
+      # is launched is a separate/child? process,
+      # so no defined here env vars
+      # would affect it
+      - |
+        sudo update-alternatives \
+          --set java {{.JAVA_HOME}}/jre/bin/java
+      # we pass realpath to `-Duser.dir` since it
+      # resolves any `/../`,
+      # which might confuse the app
+      - |
+        java \
+          -Duser.dir=$(realpath $(pwd)/../ ) \
+          -jar \
+            $(realpath \
+              $(pwd)/../KnightLauncher.jar \
+            )\
+        || cat \
+          $(realpath \
+            $(pwd)/../knightlauncher.log \
+          ) \
+        | grep SEVERE \
+          --after-context 99
+      # automatically revert java to one of highest priority by system
+      - echo 0 | sudo update-alternatives --config java > /dev/null
+  deploy:
+    summary: Assuming repo is in the root game directory, build, move, prepare and launch the app
+    aliases: [d]
+    cmds:
+      - task: build
+      # get KnightLauncher.properties from previous install of KL
+      # - cp ./KnightLauncher.properties ./../
+      - cp target/KnightLauncher-2.0.33-fat-jar.jar ../KnightLauncher.jar
+      - task: run

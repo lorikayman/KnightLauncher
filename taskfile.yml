@@ -31,6 +31,10 @@ tasks:
     aliases: [c]
     cmds:
       - mvn dependency:tree
+  # run:vncserver:
+  #   summary: Start vnc server fox Xorg in mirroring
+  #   cmds:
+  #     - x11vnc -display :99 -forever -shared -noxdamage
   run:
     summary: Launch from parent directory
     aliases: [r]
@@ -46,7 +50,9 @@ tasks:
       # we pass realpath to `-Duser.dir` since it
       # resolves any `/../`,
       # which might confuse the app
+      # :5900
       - |
+        DISPLAY=:99 \
         java \
           -Duser.dir=$(realpath $(pwd)/../ ) \
           -jar \

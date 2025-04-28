@@ -64,10 +64,52 @@ The following open source libraries were used to develop Knight Launcher:
 Install dependencies:
 
 ```sh
-sudo apt install openjdk-8-jdk
 # install modern java (>= 18) for Fernflower and linter
-sudo apt install openjdk-21-jdk
-sudo apt install maven
+sudo apt install openjdk-8-jdk openjdk-21-jdk maven xserver-xorg-video-dummy
 ```
 
 For build, see [`taskfile.yml::deploy`](./taskfile.yml) steps and dependencies.
+
+## UI Scaling
+
+### Method 1: Over VNC from xorg virtual display
+
+Since any native scaling capabilities are ignored, we will start Xorg server on any virtual display (:99 as the default) and use x11vnc/vnc server to mirror it for connection by vnc client
+
+```sh
+# assuming we are in KL repo root, read display config
+# if this fails with an error:
+#   Error parsing the config file
+#   Fatal server error
+#     no screens found
+#
+# change `Virtual 1920 1080`
+# resoltion to a differnt common one
+# and rerun xorg
+sudo Xorg -noreset -config $(pwd)/xorg.conf :99 &
+xrandr --fb 840x460
+export DISPLAY=:99
+
+# mount window manager as
+# SceneEditor/ModelViewer
+# lacks its own window decorator
+icewm-session &
+
+# start vnc server
+x11vnc -display :99 -nopw -listen 0.0.0.0 -xkb &
+
+# build (task d) or start (task r) KL with inline DISPLAY variable, see taskfile
+task r
+
+# closing/openning of ModelViewer resets
+# Virtual Display resolition to
+# initial from xorg.conf
+#
+# for this we retart wm and apply
+# dynamic resizing,
+# fetch latest instance of wm with pid
+# and kill this process
+kill $(pgrep -x icewm-session) \
+&& xrandr --fb 840x460 \
+&& icewm-session &
+```

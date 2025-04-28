@@ -5,9 +5,12 @@ version: "3"
 vars:
   JAVA_HOME:
     sh: echo "/usr/lib/jvm/java-8-openjdk-amd64"
+  VIRTUAL_DISPLAY:
+    sh: echo ":99"
 
 env:
   JAVA_HOME: "{{.JAVA_HOME}}"
+  VIRTUAL_DISPLAY: "{{.VIRTUAL_DISPLAY}}"
 
 tasks:
   default:
@@ -31,10 +34,9 @@ tasks:
     aliases: [c]
     cmds:
       - mvn dependency:tree
-  # run:vncserver:
-  #   summary: Start vnc server fox Xorg in mirroring
-  #   cmds:
-  #     - x11vnc -display :99 -forever -shared -noxdamage
+  vnc:xorg:show:
+    cmds:
+      - pgrep -x Xorg --newest
   run:
     summary: Launch from parent directory
     aliases: [r]
@@ -50,9 +52,8 @@ tasks:
       # we pass realpath to `-Duser.dir` since it
       # resolves any `/../`,
       # which might confuse the app
-      # :5900
       - |
-        DISPLAY=:99 \
+        DISPLAY={{.VIRTUAL_DISPLAY}} \
         java \
           -Duser.dir=$(realpath $(pwd)/../ ) \
           -jar \

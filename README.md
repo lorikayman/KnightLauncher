@@ -87,6 +87,7 @@ Since any native scaling capabilities are ignored, we will start Xorg server on 
 # resoltion to a differnt common one
 # and rerun xorg
 sudo Xorg -noreset -config $(pwd)/xorg.conf :99 &
+# fine-tune this resolution for proper display
 xrandr --fb 840x460
 export DISPLAY=:99
 
@@ -99,7 +100,7 @@ icewm-session &
 x11vnc -display :99 -nopw -listen 0.0.0.0 -xkb &
 
 # build (task d) or start (task r) KL with inline DISPLAY variable, see taskfile
-task r
+task d
 
 # closing/openning of ModelViewer resets
 # Virtual Display resolition to
@@ -112,4 +113,8 @@ task r
 kill $(pgrep -x icewm-session) \
 && xrandr --fb 840x460 \
 && icewm-session &
+
+# after KL session is complete,
+# selectively kill Xorg instance
+ps aux | grep Xorg
 ```

@@ -66,8 +66,8 @@ tasks:
           ) \
         | grep SEVERE \
           --after-context 99
-      # automatically revert java to one of highest priority by system
-      - echo 0 | sudo update-alternatives --config java > /dev/null
+      # revert java to one of highest priority by system
+      - sudo update-alternatives --config java
   deploy:
     summary: Assuming repo is in the root game directory, build, move, prepare and launch the app
     aliases: [d]

@@ -64,31 +64,45 @@ The following open source libraries were used to develop Knight Launcher:
 Install dependencies:
 
 ```sh
-# install modern java (>= 18) for Fernflower and linter
-sudo apt install openjdk-8-jdk openjdk-21-jdk maven xserver-xorg-video-dummy
+sudo apt install \
+  openjdk-8-jdk \
+  maven
+# we might also install later version, as we can use standalone LSP
+sudo apt install openjdk-21-jdk
 ```
 
-For build, see [`taskfile.yml::deploy`](./taskfile.yml) steps and dependencies.
+For building from source locally, see task `deploy` of [`taskfile.yml`](./taskfile.yml) steps and its dependencies.
 
-## ModelViewer/SceneEditor UI Scaling
 
-There are a few conventional method to scale UI programmatically, relying on OS-specfifc properties of Hi-DPI display handling, none of those are covered here at the time of writing as of KL v`.33`.
+## UI Scaling
 
-Due to this, following methods are strictly for one's one convenience, and are not intended for any degree of production-ready application.
+There are a few conventional methods to scale UI, like relying on OS-specific properties of Hi-DPI display handling and native feature of java runtime, - none of those are covered here at the time of writing, as of KL v`.33`.
+
+Due to this, following methods are strictly for one's own convenience to bootstrap SceneEditor in a Hi-DPI environment. Consequently, those methods and are not intended for any degree of serious/stable usage, being good-enough workarounds.
 
 ### Method 1: Xorg virtual display mirroring over VNC
+
+Requirements:
+
+```sh
+sudo apt install \
+  xserver-xorg-video-dummy \
+  x11vnc \
+  icewm-session \
+  remmina
+```
 
 Since any native scaling capabilities are ignored, we will scale UI through not spoofing of display resolution, but rescaling of display, which would not break rest of the sessions.
 
 To achieve this, we will create an instance of Xorg/X11 server on a specified virtual display, being :99 in out use-case.
 
-All of comands are ran from KnigjhtLauncher repository root directory:
+All of commands are ran from KnightLauncher repository root directory:
 
 ```sh
 sudo Xorg -noreset -config $(pwd)/xorg.conf :99 &
 ```
 
-We pass [xorg.conf](./xorg.cong) configuration, where we propose a common initial resolution. It might crash with an error on log, specified in the stderr:
+We pass Xorg [xorg.conf](./xorg.cong) configuration, where we propose a common initial resolution. It might crash with an error on log, specified in the stderr:
 
 ```log
   Error parsing the config file
@@ -96,9 +110,9 @@ We pass [xorg.conf](./xorg.cong) configuration, where we propose a common initia
     no screens found
 ```
 
-If this error is found, change `Virtual 1920 1080` line referencing display resolution in `xorg.conf` to a different common one and rerun xorg on :99 display.
+In case of this error change `Virtual 1920 1080` line referencing display resolution in `xorg.conf` to a different common one and rerun xorg on :99 display.
 
-Once Xorg is running, dynamically adjust :99 resolution:
+Once Xorg is running, dynamically adjust display :99 resolution:
 
 ```sh
 # define display context
@@ -107,11 +121,9 @@ export DISPLAY=:99
 xrandr --fb 840x460
 ```
 
-The smaller this resolution, larger UI element will be, as we then upscale through the client this smaller display. We'll can any VNC client, capable of upscaling recieved image, and for out purposes of using SceneEditor, [Remmina]() client will be a good enough choice.
+The smaller this resolution, the larger UI elements will be, as we then upscale through the VNC client this smaller resolution to the size of client viewport. We can any VNC client, capable of upscaling received image, and for out purposes of using SceneEditor, [Remmina]() client will be a good enough choice.
 
----
-
-Now, we need to initialize window manager, as SceneEditor does not have its own winfo decorator. `icewm` will be our choice as it is rather lightweight.
+Now, we need to initialize window manager, as SceneEditor does not have its own window decorator, `icewm` will be our choice as it is rather lightweight.
 
 Launch `icewm` in background and start `x11vnc` server on all ports listening :99 display in background:
 
@@ -120,18 +132,14 @@ icewm-session &
 x11vnc -display :99 -nopw -listen 0.0.0.0 -xkb &
 ```
 
-Build and/or run KnightLauncher for reference, see `taskfile.yml::run`:
+Build and/or run KnightLauncher for reference, see task `run` of `taskfile.yml`:
 
 ```sh
-# if task binary is in PATH
+# if task binary is in PATH, otherwise look to taskfile
 task run
 ```
 
 After this connect with VNC client to port `:5901`. Remmina has more stable display scaling, so we will use it.
-
-```sh
-sudo apt install remmina
-```
 
 Open SceneEditor/ModelViewer. In some instances it may spawn in initial display resolution. for this we may relaunch it and reapply `xrandr`. Keep in mind, when KL or its subsequent editors are initialized or closed, Xorg's virtual display will be reset to its initial resolution from `xorg.conf`.
 
@@ -143,7 +151,7 @@ kill $(pgrep -x icewm-session) \
 && icewm-session &
 ```
 
-X11 server does not exit by itself, kill it by identifying process with comand string from earlier:
+X11 server does not exit by itself, kill it by identifying process with command string from earlier:
 
 ```sh
 ps aux | grep Xorg

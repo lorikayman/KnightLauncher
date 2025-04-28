@@ -121,11 +121,11 @@ export DISPLAY=:99
 xrandr --fb 840x460
 ```
 
-The smaller this resolution, the larger UI elements will be, as we then upscale through the VNC client this smaller resolution to the size of client viewport. We can any VNC client, capable of upscaling received image, and for out purposes of using SceneEditor, [Remmina]() client will be a good enough choice.
+The smaller this resolution, the larger UI elements will be, as we then upscale through the VNC client this smaller resolution to the size of client's viewport. We can use any VNC client capable of upscaling received image, and for our purposes of using SceneEditor, [Remmina]() client will be a good enough choice.
 
 Now, we need to initialize window manager, as SceneEditor does not have its own window decorator, `icewm` will be our choice as it is rather lightweight.
 
-Launch `icewm` in background and start `x11vnc` server on all ports listening :99 display in background:
+Launch `icewm` in background and start `x11vnc` server on all network interfaces listening :99 display in background:
 
 ```sh
 icewm-session &

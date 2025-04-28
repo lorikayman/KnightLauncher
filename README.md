@@ -70,57 +70,81 @@ sudo apt install openjdk-8-jdk openjdk-21-jdk maven xserver-xorg-video-dummy
 
 For build, see [`taskfile.yml::deploy`](./taskfile.yml) steps and dependencies.
 
-## UI Scaling
+## ModelViewer/SceneEditor UI Scaling
 
-### Method 1: Over VNC from xorg virtual display
+There are a few conventional method to scale UI programmatically, relying on OS-specfifc properties of Hi-DPI display handling, none of those are covered here at the time of writing as of KL v`.33`.
 
-Since any native scaling capabilities are ignored, we will start Xorg server on any virtual display (:99 as the default) and use x11vnc/vnc server to mirror it for connection by vnc client
+Due to this, following methods are strictly for one's one convenience, and are not intended for any degree of production-ready application.
+
+### Method 1: Xorg virtual display mirroring over VNC
+
+Since any native scaling capabilities are ignored, we will scale UI through not spoofing of display resolution, but rescaling of display, which would not break rest of the sessions.
+
+To achieve this, we will create an instance of Xorg/X11 server on a specified virtual display, being :99 in out use-case.
+
+All of comands are ran from KnigjhtLauncher repository root directory:
 
 ```sh
-# assuming we are in KL repo root, read display config
-# if this fails with an error:
-#   Error parsing the config file
-#   Fatal server error
-#     no screens found
-#
-# change `Virtual 1920 1080`
-# resoltion to a differnt common one
-# and rerun xorg
 sudo Xorg -noreset -config $(pwd)/xorg.conf :99 &
+```
+
+We pass [xorg.conf](./xorg.cong) configuration, where we propose a common initial resolution. It might crash with an error on log, specified in the stderr:
+
+```log
+  Error parsing the config file
+  Fatal server error
+    no screens found
+```
+
+If this error is found, change `Virtual 1920 1080` line referencing display resolution in `xorg.conf` to a different common one and rerun xorg on :99 display.
+
+Once Xorg is running, dynamically adjust :99 resolution:
+
+```sh
+# define display context
+export DISPLAY=:99
 # fine-tune this resolution for proper display
 xrandr --fb 840x460
-export DISPLAY=:99
+```
 
-# mount window manager as
-# SceneEditor/ModelViewer
-# lacks its own window decorator
+The smaller this resolution, larger UI element will be, as we then upscale through the client this smaller display. We'll can any VNC client, capable of upscaling recieved image, and for out purposes of using SceneEditor, [Remmina]() client will be a good enough choice.
+
+---
+
+Now, we need to initialize window manager, as SceneEditor does not have its own winfo decorator. `icewm` will be our choice as it is rather lightweight.
+
+Launch `icewm` in background and start `x11vnc` server on all ports listening :99 display in background:
+
+```sh
 icewm-session &
-
-# start vnc server
 x11vnc -display :99 -nopw -listen 0.0.0.0 -xkb &
+```
 
-# build (task d) or start (task r) KL with inline DISPLAY variable, see taskfile
-task d
+Build and/or run KnightLauncher for reference, see `taskfile.yml::run`:
 
-# closing/openning of ModelViewer resets
-# Virtual Display resolition to
-# initial from xorg.conf
-#
-# for this we retart wm and apply
-# dynamic resizing,
-# fetch latest instance of wm with pid
-# and kill this process
-kill $(pgrep -x icewm-session) \
-&& xrandr --fb 840x460 \
-&& icewm-session &
-
-# after KL session is complete,
-# selectively kill Xorg instance
-ps aux | grep Xorg
+```sh
+# if task binary is in PATH
+task run
 ```
 
 After this connect with VNC client to port `:5901`. Remmina has more stable display scaling, so we will use it.
 
 ```sh
 sudo apt install remmina
+```
+
+Open SceneEditor/ModelViewer. In some instances it may spawn in initial display resolution. for this we may relaunch it and reapply `xrandr`. Keep in mind, when KL or its subsequent editors are initialized or closed, Xorg's virtual display will be reset to its initial resolution from `xorg.conf`.
+
+To fix this, restart and readjust window manager, readjust display resolution:
+
+```sh
+kill $(pgrep -x icewm-session) \
+&& xrandr --fb 840x460 \
+&& icewm-session &
+```
+
+X11 server does not exit by itself, kill it by identifying process with comand string from earlier:
+
+```sh
+ps aux | grep Xorg
 ```

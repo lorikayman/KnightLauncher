@@ -88,7 +88,6 @@ Requirements:
 sudo apt install \
   xserver-xorg-video-dummy \
   x11vnc \
-  icewm-session \
   remmina
 ```
 
@@ -123,12 +122,12 @@ xrandr --fb 840x460
 
 The smaller this resolution, the larger UI elements will be, as we then upscale through the VNC client this smaller resolution to the size of client's viewport. We can use any VNC client capable of upscaling received image, and for our purposes of using SceneEditor, [Remmina]() client will be a good enough choice.
 
-Now, we need to initialize window manager, as SceneEditor does not have its own window decorator, `icewm` will be our choice as it is rather lightweight.
+Now, we need to initialize window manager, as SceneEditor does not have its own window decorator, `icewm` or `kde plama` will be our choice as it is rather lightweight.
 
-Launch `icewm` in background and start `x11vnc` server on all network interfaces listening :99 display in background:
+Launch `startplasma-x11` or `icewm-session` in background and start `x11vnc` server on all network interfaces listening :99 display in background:
 
 ```sh
-icewm-session &
+startplasma-x11 &
 x11vnc -display :99 -nopw -listen 0.0.0.0 -xkb &
 ```
 
@@ -139,11 +138,13 @@ Build and/or run KnightLauncher for reference, see task `run` of `taskfile.yml`:
 task run
 ```
 
-After this connect with VNC client to port `:5901`. Remmina has more stable display scaling, so we will use it.
+After this connect with VNC client to port `:5900`. Remmina has more stable display scaling, so we will use it.
 
 Open SceneEditor/ModelViewer. In some instances it may spawn in initial display resolution. for this we may relaunch it and reapply `xrandr`. Keep in mind, when KL or its subsequent editors are initialized or closed, Xorg's virtual display will be reset to its initial resolution from `xorg.conf`.
 
 To fix this, restart and readjust window manager, readjust display resolution:
+
+Only for icewm:
 
 ```sh
 kill $(pgrep -x icewm-session) \
@@ -151,8 +152,76 @@ kill $(pgrep -x icewm-session) \
 && icewm-session &
 ```
 
+For Plasma we don't need to relauch windows manager iteslf:
+
+```sh
+xrandr --fb 840x460
+```
+
 X11 server does not exit by itself, kill it by identifying process with command string from earlier:
 
 ```sh
 ps aux | grep Xorg
 ```
+
+#### Method 1.1: Custom resolution
+
+For plasma and underlying Xorg, we can create custom resolutions by regisgtering them as (virtual) display modes.
+
+At that, we are working with ::99 display, in order for xorg to be able to apply those settings. First, we identify our physical display:
+
+```sh
+KnightLauncher:
+$ xrandr
+Screen 0: minimum 320 x 200, current 880 x 480, maximum 16384 x 16384
+eDP connected primary 880x480+0+0 (normal left inverted right x axis y axis) 355mm x 199mm
+   1920x1080    144.00 +  60.01
+   1680x1050    144.00
+   ...
+```
+
+In the example, we need `eDP` as the name.
+
+Then, we create display mode entry with 3 paramters - width, height, refresh rate (880x480 resolution looks relatively well for UI of SceneEditor):
+
+```sh
+gtf 880 480 60
+```
+
+The result will look like a following, his is our display mode configuration:
+
+```
+"880x480_60.00"  32.92  880 904 992 1104  480 481 484 497  -HSync +Vsync
+```
+
+Then we register this configuration, add it for the selected display, adn apply it:
+
+```sh
+xrandr --newmode "880x480_60.00"  32.92  880 904 992 1104  480 481 484 497  -HSync +Vsync
+xrandr --addmode eDP  "880x480_60.00"
+xrandr --output eDP --mode "880x480_60.00"
+```
+
+This configuration will appear on KDE display settings, as one of generic ones, so that we can select and apply it without restarting entire WM.
+
+New configuration will be added to list of modes:
+
+```sh
+KnightLauncher:
+$ xrandr
+Screen 0: minimum 320 x 200, current 880 x 480, maximum 16384 x 16384
+eDP connected primary 880x480+0+0 (normal left inverted right x axis y axis) 355mm x 199mm
+   1920x1080    144.00 +  60.01
+   1680x1050    144.00
+   1280x1024    144.00
+   1440x900     144.00
+   1280x800     144.00
+   1280x720     144.00
+   1024x768     144.00
+   800x600      144.00
+   640x480      144.00
+   880x480_60.00  60.00*
+```
+
+Sources:
+- https://gist.github.com/debloper/2793261

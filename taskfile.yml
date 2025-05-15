@@ -6,7 +6,7 @@ vars:
   JAVA_HOME:
     sh: echo "/usr/lib/jvm/java-8-openjdk-amd64"
   VIRTUAL_DISPLAY:
-    sh: echo ":99"
+    sh: echo ":1"
 
 env:
   JAVA_HOME: "{{.JAVA_HOME}}"
@@ -53,7 +53,6 @@ tasks:
       # resolves any `/../`,
       # which might confuse the app
       - |
-        DISPLAY={{.VIRTUAL_DISPLAY}} \
         java \
           -Duser.dir=$(realpath $(pwd)/../ ) \
           -jar \
@@ -75,5 +74,5 @@ tasks:
       - task: build
       # get KnightLauncher.properties from previous install of KL
       # - cp ./KnightLauncher.properties ./../
-      - cp target/KnightLauncher-2.0.33-fat-jar.jar ../KnightLauncher.jar
+      - cp target/KnightLauncher-2.0.34-fat-jar.jar ../KnightLauncher.jar
       - task: run

@@ -76,9 +76,10 @@ For building from source locally, see task `deploy` of [`taskfile.yml`](./taskfi
 
 ## UI Scaling
 
-There are a few conventional methods to scale UI, like relying on OS-specific properties of Hi-DPI display handling and native feature of java runtime, - none of those are covered here at the time of writing, as of KL v`.33`.
+There are a few conventional methods to scale UI, like relying on OS-specific properties of Hi-DPI display handling and native feature of java runtime, - none of those are covered here at the time of writing, as of KL v`.35`.
 
-Due to this, following methods are strictly for one's own convenience to bootstrap SceneEditor in a Hi-DPI environment. Consequently, those methods and are not intended for any degree of serious/stable usage, being good-enough workarounds.
+> [!CAUTION]
+> The following methods are strictly for one's own convenience to bootstrap Editors in a custom environment. Consequently, those methods and are __not intended for any degree of serious/stable application__, being only good-enough workarounds. Proceed on your own risk.
 
 ### Method 1: Xorg virtual display mirroring over VNC
 

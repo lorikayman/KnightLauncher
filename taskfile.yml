@@ -74,5 +74,5 @@ tasks:
       - task: build
       # get KnightLauncher.properties from previous install of KL
       # - cp ./KnightLauncher.properties ./../
-      - cp target/KnightLauncher-2.0.34-fat-jar.jar ../KnightLauncher.jar
+      - cp target/KnightLauncher-2.0.*-fat-jar.jar ../KnightLauncher.jar
       - task: run
